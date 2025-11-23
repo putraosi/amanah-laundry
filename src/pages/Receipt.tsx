@@ -1,14 +1,13 @@
-import * as htmlToImage from "html-to-image";
-import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Share2, Plus, Minus } from "lucide-react";
-import { toast } from "sonner";
-import { Checkbox } from "@/components/ui/checkbox";
 import { dayNames, monthNames } from "@/utils/array";
+import * as htmlToImage from "html-to-image";
+import { Minus, Plus, Share2 } from "lucide-react";
+import { useRef, useState } from "react";
+
+const SpecialDiscount = 5; // percentage
 
 interface ServiceItem {
   name: string;
@@ -20,9 +19,6 @@ interface ServiceItem {
 const Receipt = () => {
   const receiptRef = useRef(null);
 
-  const [customerName, setCustomerName] = useState("");
-  const [employeeName, setEmployeeName] = useState("");
-  const [notes, setNotes] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([
     { name: "Setrika Reguler", quantity: 0, price: 5000, type: 2 },
     { name: "Setrika Express", quantity: 0, price: 6000, type: 2 },
@@ -32,34 +28,13 @@ const Receipt = () => {
     { name: "Cuci Express", quantity: 0, price: 9000, type: 1 },
   ]);
   const [discount, setDiscount] = useState(0);
-  const [payment, setPayment] = useState(0);
-  const [checked, setChecked] = useState(false);
-
-  const generateReceiptId = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-  };
-
-  const getCurrentDate = () => {
-    const now = new Date();
-
-    const dayName = dayNames[now.getDay()];
-    const day = String(now.getDate()).padStart(2, "0");
-    const month = monthNames[now.getMonth()];
-    const year = now.getFullYear();
-
-    return `${dayName}, ${day} ${month} ${year}`;
-  };
 
   const calculateSubtotal = () => {
     return services.reduce((sum, item) => sum + item.quantity * item.price, 0);
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() - discount;
-  };
-
-  const calculateChange = () => {
-    return payment - calculateTotal();
+    return calculateSubtotal() - totalDiscount;
   };
 
   const updateServiceQuantity = (index: number, delta: number) => {
@@ -71,17 +46,25 @@ const Receipt = () => {
     setServices(newServices);
   };
 
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString("id-ID");
-  };
-  
   const onReset = () => {
     const reset = services.map((item) => ({
       ...item,
       quantity: 0,
     }));
+    setDiscount(0);
 
     setServices(reset);
+  };
+
+  const onValidation = () => {
+    const hasValue = services.some((item) => item.quantity > 0);
+
+    if (!hasValue) {
+      alert("Must be input one");
+      return;
+    }
+
+    shareToWhatsApp();
   };
 
   const shareToWhatsApp = async () => {
@@ -95,7 +78,9 @@ const Receipt = () => {
       const res = await fetch(dataUrl);
       const blob = await res.blob();
 
-      const file = new File([blob], "receipt.png", { type: "image/png" });
+      const file = new File([blob], `${generateReceiptId()}.png`, {
+        type: "image/png",
+      });
       // const text = "Halo, ini struk pesanan Anda.";
       const text = `Bismillah,
 Mohon maaf mengganggu waktu istirahatnya.
@@ -128,13 +113,38 @@ Terimakasih banyak🙏😊`;
       // download image (karena tidak bisa attach di web)
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = "receipt.png";
+      a.download = `${generateReceiptId()}.png`;
       a.click();
     } catch (error) {
       console.error(error);
       alert("Gagal membuat gambar!");
     }
   };
+
+  const getSpecialDiscount = () => {
+    let discount: number = 0;
+    const filtered = services.filter((e) => e?.type === 1 || e?.type === 2);
+
+    if (filtered?.length) {
+      const totalQty = filtered.reduce((sum, item) => sum + item.quantity, 0);
+
+      if (totalQty >= 10) {
+        const totalPrice = filtered.reduce(
+          (sum, item) => sum + item.quantity * item.price,
+          0
+        );
+
+        discount = (totalPrice * SpecialDiscount) / 100;
+      }
+    }
+
+    return discount;
+  };
+
+  const specialDiscount = getSpecialDiscount();
+  const totalDiscount = roundUpToThousand(discount + specialDiscount);
+  const total = calculateTotal();
+  const rounded = getLastThreeDigits(total);
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -198,26 +208,7 @@ Terimakasih banyak🙏😊`;
                 ))}
               </div>
 
-              <div>
-                <Label htmlFor="discount">Diskon (Rp)</Label>
-                <Input
-                  id="discount"
-                  type="number"
-                  placeholder="0"
-                  value={discount}
-                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={checked}
-                  onClick={() => setChecked((prev) => !prev)}
-                />
-                <label className="text-sm">Diskon 5%</label>
-              </div>
-
-              <Button onClick={shareToWhatsApp} className="w-full" size="lg">
+              <Button onClick={onValidation} className="w-full" size="lg">
                 <Share2 className="mr-2 h-5 w-5" />
                 Bagikan via WhatsApp
               </Button>
@@ -225,9 +216,9 @@ Terimakasih banyak🙏😊`;
           </Card>
 
           {/* Preview Section */}
-          <Card ref={receiptRef}>
-            <CardContent className="pt-6">
-              <div className="bg-card p-6 rounded-lg border-2 border-dashed border-border font-mono text-sm">
+          <Card ref={receiptRef} className="p-1">
+            <CardContent className="p-1">
+              <div className="bg-card p-2 rounded-lg border-2 border-dashed border-border font-mono text-sm">
                 <div className="w-full items-center justify-center flex">
                   <span className="font-semibold text-base">
                     Amanah Laundry Cibogo
@@ -267,12 +258,14 @@ Terimakasih banyak🙏😊`;
                     <span>{formatCurrency(calculateSubtotal())}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Diskon</span>
-                    <span>{formatCurrency(discount)}</span>
+                    <span>
+                      Diskon {specialDiscount ? `${SpecialDiscount}%` : ""}
+                    </span>
+                    <span>{formatCurrency(totalDiscount + rounded)}</span>
                   </div>
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>{formatCurrency(calculateTotal())}</span>
+                    <span>{formatCurrency(total - rounded)}</span>
                   </div>
                 </div>
               </div>
@@ -285,3 +278,28 @@ Terimakasih banyak🙏😊`;
 };
 
 export default Receipt;
+
+const roundUpToThousand = (num: number) => {
+  return Math.ceil(num / 1000) * 1000;
+};
+
+const getLastThreeDigits = (num: number) => num % 1000;
+
+const generateReceiptId = () => {
+  return Math.random().toString(36).substring(2, 8);
+};
+
+const getCurrentDate = () => {
+  const now = new Date();
+
+  const dayName = dayNames[now.getDay()];
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = monthNames[now.getMonth()];
+  const year = now.getFullYear();
+
+  return `${dayName}, ${day} ${month} ${year}`;
+};
+
+const formatCurrency = (amount: number) => {
+  return amount.toLocaleString("id-ID");
+};

@@ -48,11 +48,11 @@ const Index = () => {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Cuci Setrika</CardTitle>
+                <CardTitle>Reguler (2-3 Hari)</CardTitle>
                 <CardDescription>Layanan lengkap cuci dan setrika</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-primary mb-2">Rp 9.000</div>
+                <div className="text-3xl font-bold text-primary mb-2">Rp 7.000</div>
                 <p className="text-sm text-muted-foreground">per kilogram</p>
                 <ul className="mt-4 space-y-2 text-sm">
                   <li className="flex items-center">
