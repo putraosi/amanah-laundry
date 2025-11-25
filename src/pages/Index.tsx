@@ -151,7 +151,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 px-4 border-t">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; 2025 Laundry Service. Layanan terbaik untuk pakaian bersih Anda.</p>
+          <p>&copy; 2025 Amanah Laundry. Layanan terbaik untuk pakaian bersih Anda.</p>
         </div>
       </footer>
     </div>
