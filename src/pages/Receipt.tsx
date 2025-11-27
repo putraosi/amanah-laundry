@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
+import { cloneDeep } from "lodash";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { dayNames, monthNames } from "@/utils/array";
+import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
 import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -10,27 +13,65 @@ import { useRef, useState } from "react";
 const SpecialDiscount = 5; // percentage
 
 interface ServiceItem {
+  style?: "secondary";
   name: string;
-  quantity: number;
-  price: number;
+  quantity: number | string;
+  price: number | string;
   type: number;
+  show: boolean;
 }
+
+const DataDefault: ServiceItem[] = [
+  { name: "Setrika Reguler", quantity: 0, price: 5000, type: 2, show: true },
+  {
+    style: "secondary",
+    name: "Setrika Express",
+    quantity: 0,
+    price: 6000,
+    type: 2,
+    show: true,
+  },
+  { name: "Cuci Lipat", quantity: 0, price: 5000, type: 1, show: false },
+  { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: false },
+  { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: false },
+  {
+    style: "secondary",
+    name: "Bedcover",
+    quantity: 0,
+    price: 25000,
+    type: 0,
+    show: false,
+  },
+  {
+    style: "secondary",
+    name: "Sprei",
+    quantity: 0,
+    price: 12000,
+    type: 0,
+    show: false,
+  },
+  {
+    style: "secondary",
+    name: "Plastik Gantung",
+    quantity: 0,
+    price: 3000,
+    type: 0,
+    show: false,
+  },
+  { name: "Ongkir", quantity: 0, price: 2000, type: 1, show: false },
+];
 
 const Receipt = () => {
   const receiptRef = useRef(null);
 
-  const [services, setServices] = useState<ServiceItem[]>([
-    { name: "Setrika Reguler", quantity: 0, price: 5000, type: 2 },
-    { name: "Setrika Express", quantity: 0, price: 6000, type: 2 },
-    { name: "Setrika Express", quantity: 0, price: 7000, type: 2 },
-    { name: "Cuci Lipat", quantity: 0, price: 5000, type: 1 },
-    { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1 },
-    { name: "Cuci Express", quantity: 0, price: 9000, type: 1 },
-  ]);
-  const [discount, setDiscount] = useState(0);
+  const [services, setServices] = useState<ServiceItem[]>(DataDefault);
+  const [isShowAll, setIsShowAll] = useState(false);
 
   const calculateSubtotal = () => {
-    return services.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    return services.reduce(
+      (sum, item) => sum + Number(item.quantity || 0) * Number(item.price || 0),
+      0
+    );
   };
 
   const calculateTotal = () => {
@@ -41,7 +82,7 @@ const Receipt = () => {
     const newServices = [...services];
     newServices[index].quantity = Math.max(
       0,
-      newServices[index].quantity + delta
+      Number(newServices[index].quantity || 0) + delta
     );
     setServices(newServices);
   };
@@ -51,13 +92,11 @@ const Receipt = () => {
       ...item,
       quantity: 0,
     }));
-    setDiscount(0);
-
     setServices(reset);
   };
 
   const onValidation = () => {
-    const hasValue = services.some((item) => item.quantity > 0);
+    const hasValue = services.some((item) => Number(item.quantity || 0) > 0);
 
     if (!hasValue) {
       alert("Must be input one");
@@ -126,11 +165,15 @@ Terimakasih banyak🙏😊`;
     const filtered = services.filter((e) => e?.type === 1 || e?.type === 2);
 
     if (filtered?.length) {
-      const totalQty = filtered.reduce((sum, item) => sum + item.quantity, 0);
+      const totalQty = filtered.reduce(
+        (sum, item) => sum + Number(item.quantity || 0),
+        0
+      );
 
       if (totalQty >= 10) {
         const totalPrice = filtered.reduce(
-          (sum, item) => sum + item.quantity * item.price,
+          (sum, item) =>
+            sum + Number(item.quantity || 0) * Number(item.price || 0),
           0
         );
 
@@ -142,7 +185,7 @@ Terimakasih banyak🙏😊`;
   };
 
   const specialDiscount = getSpecialDiscount();
-  const totalDiscount = roundUpToThousand(discount + specialDiscount);
+  const totalDiscount = roundUpToThousand(specialDiscount);
   const total = calculateTotal();
   const rounded = getLastThreeDigits(total);
 
@@ -169,43 +212,72 @@ Terimakasih banyak🙏😊`;
                     Reset
                   </button>
                 </div>
-                {services.map((service, index) => (
-                  <div key={index} className="space-y-2">
-                    <p className="text-sm font-medium">{service.name}</p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => updateServiceQuantity(index, -1)}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={service.quantity}
-                        onChange={(e) => {
-                          const newServices = [...services];
-                          newServices[index].quantity = Math.max(
-                            0,
-                            parseFloat(e.target.value) || 0
-                          );
-                          setServices(newServices);
-                        }}
-                        className="text-center"
-                      />
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => updateServiceQuantity(index, 1)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <span className="text-sm whitespace-nowrap">
-                        x Rp {formatCurrency(service.price)}
-                      </span>
+                {services.map((service, index) => {
+                  if (!isShowAll && !service?.show) return null;
+                  return (
+                    <div key={index} className="space-y-2">
+                      <p className="text-sm font-medium">{service.name}</p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => updateServiceQuantity(index, -1)}
+                          className="aspect-square"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input
+                          type="text"
+                          value={service.quantity}
+                          onChange={(e) => {
+                            const newServices = [...services];
+                            newServices[index].quantity =
+                              e.target.value.replace(REGEX_NUMBER_DECIMAL, "");
+                            setServices(newServices);
+                          }}
+                          className="text-center flex-1"
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => updateServiceQuantity(index, 1)}
+                          className="aspect-square"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        {service?.style === "secondary" ? (
+                          <div className="w-1/4 flex items-center gap-1 text-sm">
+                            <span>x</span>
+                            <Input
+                              type="text"
+                              value={formatCurrency(Number(service.price || 0))}
+                              onChange={(e) => {
+                                const newServices = [...services];
+                                newServices[index].price = e.target.value
+                                  .replace(/\./g, "")
+                                  .replace(REGEX_NUMBER_DECIMAL, "");
+                                setServices(newServices);
+                              }}
+                              className="flex-1"
+                            />
+                          </div>
+                        ) : (
+                          <span className="w-1/4 text-sm whitespace-nowrap">
+                            x Rp {formatCurrency(Number(service.price || 0))}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
+              </div>
+
+              <div
+                onClick={() => setIsShowAll((prev) => !prev)}
+                className="flex item-center gap-2 cursor-pointer"
+              >
+                <Checkbox checked={isShowAll} />
+                <Label className="cursor-pointer">Show All</Label>
               </div>
 
               <Button onClick={onValidation} className="w-full" size="lg">
@@ -234,16 +306,19 @@ Terimakasih banyak🙏😊`;
 
                 <div className="space-y-3 my-4">
                   {services.map((service, index) =>
-                    service.quantity > 0 ? (
+                    Number(service.quantity) > 0 ? (
                       <div key={index}>
                         <div className="font-bold">{service.name}</div>
                         <div className="flex justify-between">
                           <span>
-                            {service.quantity.toFixed(1)} x{" "}
-                            {formatCurrency(service.price)}
+                            {Number(service.quantity).toFixed(1)} x{" "}
+                            {formatCurrency(Number(service.price || 0))}
                           </span>
                           <span>
-                            {formatCurrency(service.quantity * service.price)}
+                            {formatCurrency(
+                              Number(service.quantity) *
+                                Number(service.price || 0)
+                            )}
                           </span>
                         </div>
                       </div>
