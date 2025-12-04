@@ -9,6 +9,7 @@ import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
 import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
+import { ImgLogo2 } from "@/assets";
 
 const SpecialDiscount = 5; // percentage
 
@@ -34,6 +35,7 @@ const DataDefault: ServiceItem[] = [
   { name: "Cuci Lipat", quantity: 0, price: 5000, type: 1, show: false },
   { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: false },
   { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: false },
+  { name: "Dryer", quantity: 0, price: 2500, type: 1, show: false },
   {
     style: "secondary",
     name: "Bedcover",
@@ -44,9 +46,25 @@ const DataDefault: ServiceItem[] = [
   },
   {
     style: "secondary",
+    name: "Selimut",
+    quantity: 0,
+    price: 10000,
+    type: 0,
+    show: false,
+  },
+  {
+    style: "secondary",
     name: "Sprei",
     quantity: 0,
     price: 12000,
+    type: 0,
+    show: false,
+  },
+  {
+    style: "secondary",
+    name: "Karpet (p x l)",
+    quantity: 0,
+    price: 10000,
     type: 0,
     show: false,
   },
@@ -292,9 +310,7 @@ Terimakasih banyak🙏😊`;
             <CardContent className="p-1">
               <div className="bg-card p-2 rounded-lg border-2 border-dashed border-border font-mono text-sm">
                 <div className="w-full items-center justify-center flex">
-                  <span className="font-semibold text-base">
-                    Amanah Laundry Cibogo
-                  </span>
+                  <img src={ImgLogo2} alt="logo" className="w-auto h-8" />
                 </div>
 
                 <div className="border-t border-dashed border-border my-2"></div>
