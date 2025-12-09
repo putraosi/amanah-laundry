@@ -121,21 +121,7 @@ const Receipt = () => {
       return;
     }
 
-    shareToWhatsApp();
-  };
-
-  const shareToWhatsApp = () => {
-    const message = `Bismillah,
-Mohon maaf mengganggu waktu istirahatnya.
-
-Alhamdulillah, pesanannya sudah selesai.
-InsyaAllah, *besok pagi* di antar.
-
-Terimakasih banyak🙏😊`;
-
-    const text = encodeURIComponent(message);
-    const url = `https://wa.me/?text=${text}`;
-    window.open(url, "_blank");
+    share();
   };
 
   const share = async () => {
@@ -152,7 +138,6 @@ Terimakasih banyak🙏😊`;
       const file = new File([blob], `${generateReceiptId()}.png`, {
         type: "image/png",
       });
-      // const text = "Halo, ini struk pesanan Anda.";
       const text = `Bismillah,
 Mohon maaf mengganggu waktu istirahatnya.
 
