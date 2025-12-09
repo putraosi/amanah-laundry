@@ -1,5 +1,5 @@
+import { ImgLogo2 } from "@/assets";
 import { Button } from "@/components/ui/button";
-import { cloneDeep } from "lodash";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
 import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { ImgLogo2 } from "@/assets";
 
 const SpecialDiscount = 5; // percentage
 
@@ -35,7 +34,8 @@ const DataDefault: ServiceItem[] = [
   { name: "Cuci Lipat", quantity: 0, price: 5000, type: 1, show: false },
   { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: false },
   { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: false },
-  { name: "Dryer", quantity: 0, price: 2500, type: 1, show: false },
+  { name: "Cuci Kilat", quantity: 0, price: 13000, type: 1, show: false },
+  { name: "Dryer", quantity: 0, price: 2500, type: 0, show: false },
   {
     style: "secondary",
     name: "Bedcover",
@@ -76,7 +76,7 @@ const DataDefault: ServiceItem[] = [
     type: 0,
     show: false,
   },
-  { name: "Ongkir", quantity: 0, price: 2000, type: 1, show: false },
+  { name: "Ongkir", quantity: 0, price: 2000, type: 0, show: false },
 ];
 
 const Receipt = () => {
@@ -124,7 +124,21 @@ const Receipt = () => {
     shareToWhatsApp();
   };
 
-  const shareToWhatsApp = async () => {
+  const shareToWhatsApp = () => {
+    const message = `Bismillah,
+Mohon maaf mengganggu waktu istirahatnya.
+
+Alhamdulillah, pesanannya sudah selesai.
+InsyaAllah, *besok pagi* di antar.
+
+Terimakasih banyak🙏😊`;
+
+    const text = encodeURIComponent(message);
+    const url = `https://wa.me/?text=${text}`;
+    window.open(url, "_blank");
+  };
+
+  const share = async () => {
     const node = receiptRef.current;
 
     if (!node) return alert("Receipt tidak ditemukan!");
@@ -202,10 +216,34 @@ Terimakasih banyak🙏😊`;
     return discount;
   };
 
+  const copyToClipboard = async () => {
+    const text = `Bismillah,
+Mohon maaf mengganggu waktu istirahatnya.
+
+Alhamdulillah, pesanannya sudah selesai.
+InsyaAllah, *besok pagi* di antar.
+
+Terimakasih banyak🙏😊`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Text berhasil di-copy!");
+    } catch (err) {
+      console.error("Gagal copy:", err);
+    }
+  };
+
   const specialDiscount = getSpecialDiscount();
   const totalDiscount = roundUpToThousand(specialDiscount);
   const total = calculateTotal();
+  const weight = services.reduce((total, item) => {
+    if (item.type === 1 || item.type === 2) {
+      return Number(total) + Number(item.quantity);
+    }
+    return total;
+  }, 0);
   const rounded = getLastThreeDigits(total);
+  const isUnder3kg = weight > 0 && weight < 3 ? true : false;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -246,6 +284,7 @@ Terimakasih banyak🙏😊`;
                         </Button>
                         <Input
                           type="text"
+                          inputMode="numeric"
                           value={service.quantity}
                           onChange={(e) => {
                             const newServices = [...services];
@@ -352,11 +391,25 @@ Terimakasih banyak🙏😊`;
                     <span>
                       Diskon {specialDiscount ? `${SpecialDiscount}%` : ""}
                     </span>
-                    <span>{formatCurrency(totalDiscount + rounded)}</span>
+                    <span>
+                      {formatCurrency(
+                        totalDiscount + (isUnder3kg ? 0 : rounded)
+                      )}
+                    </span>
                   </div>
+                  {isUnder3kg && (
+                    <div className="flex justify-between">
+                      <span>{"Pembulatan <3kg"}</span>
+                      <span>{formatCurrency(1000 - rounded)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>{formatCurrency(total - rounded)}</span>
+                    <span>
+                      {formatCurrency(
+                        isUnder3kg ? total + 1000 - rounded : total - rounded
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>
