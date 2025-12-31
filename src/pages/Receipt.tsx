@@ -1,9 +1,11 @@
 import { ImgLogo2 } from "@/assets";
+import { AddServiceDialog } from "@/components/AddCustomerDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { ServiceProps } from "@/types/service";
 import { dayNames, monthNames } from "@/utils/array";
 import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
 import * as htmlToImage from "html-to-image";
@@ -12,16 +14,7 @@ import { useRef, useState } from "react";
 
 const SpecialDiscount = 5; // percentage
 
-interface ServiceItem {
-  style?: "secondary";
-  name: string;
-  quantity: number | string;
-  price: number | string;
-  type: number;
-  show: boolean;
-}
-
-const DataDefault: ServiceItem[] = [
+const DataDefault: ServiceProps[] = [
   { name: "Setrika Reguler", quantity: 0, price: 5000, type: 2, show: true },
   {
     style: "secondary",
@@ -82,7 +75,7 @@ const DataDefault: ServiceItem[] = [
 const Receipt = () => {
   const receiptRef = useRef(null);
 
-  const [services, setServices] = useState<ServiceItem[]>(DataDefault);
+  const [services, setServices] = useState<ServiceProps[]>(DataDefault);
   const [isShowAll, setIsShowAll] = useState(false);
 
   const calculateSubtotal = () => {
@@ -106,7 +99,7 @@ const Receipt = () => {
   };
 
   const onReset = () => {
-    const reset = services.map((item) => ({
+    const reset = DataDefault.map((item) => ({
       ...item,
       quantity: 0,
     }));
@@ -218,6 +211,14 @@ Terimakasih banyak🙏😊`;
     }
   };
 
+  const handleAddCustomer = (data: Omit<ServiceProps, "id" | "createdAt">) => {
+    const newService: ServiceProps = {
+      ...data,
+      name: "test",
+    };
+    setServices([...services, newService]);
+  };
+
   const specialDiscount = getSpecialDiscount();
   const totalDiscount = roundUpToThousand(specialDiscount);
   const total = calculateTotal();
@@ -229,6 +230,8 @@ Terimakasih banyak🙏😊`;
   }, 0);
   const rounded = getLastThreeDigits(total);
   const isUnder3kg = weight > 0 && weight < 3 ? true : false;
+
+  console.log("cek s", services);
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -247,11 +250,15 @@ Terimakasih banyak🙏😊`;
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="space-y-3">
-                <div className="flex justify-between ">
+                <div className="flex justify-between items-center">
                   <Label>Layanan</Label>
-                  <button onClick={onReset} className="text-red-400 text-sm">
-                    Reset
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <AddServiceDialog onAddService={handleAddCustomer} />
+
+                    <button onClick={onReset} className="text-red-400 text-sm">
+                      Reset
+                    </button>
+                  </div>
                 </div>
                 {services.map((service, index) => {
                   if (!isShowAll && !service?.show) return null;
