@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,20 +7,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus } from "lucide-react";
-import { toast } from "sonner";
 import type { ServiceProps } from "@/types/service";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AddServiceDialogProps {
   onAddService: (Service: Omit<ServiceProps, "id" | "createdAt">) => void;
@@ -29,6 +20,7 @@ interface AddServiceDialogProps {
 export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<ServiceProps>({
+    style: "secondary",
     name: "",
     quantity: "",
     price: "",
@@ -75,7 +67,7 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="John Doe"
+              placeholder="Jaket"
               required
             />
           </div>

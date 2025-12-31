@@ -214,7 +214,6 @@ Terimakasih banyak🙏😊`;
   const handleAddCustomer = (data: Omit<ServiceProps, "id" | "createdAt">) => {
     const newService: ServiceProps = {
       ...data,
-      name: "test",
     };
     setServices([...services, newService]);
   };
