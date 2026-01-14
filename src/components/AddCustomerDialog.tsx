@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import type { ServiceProps } from "@/types/service";
 import { useState } from "react";
 import { toast } from "sonner";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 interface AddServiceDialogProps {
   onAddService: (Service: Omit<ServiceProps, "id" | "createdAt">) => void;
@@ -24,7 +25,7 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
     name: "",
     quantity: "",
     price: "",
-    type: 2,
+    type: 0,
     show: true,
   });
 
@@ -60,7 +61,30 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nama*</Label>
+            <Label htmlFor="name">Jenis</Label>
+
+            <RadioGroup
+              defaultValue={String(formData?.type)}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: Number(value) })
+              }
+              className="flex flex-row gap-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="1" id="1" />
+                <Label htmlFor="1">Cuci</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="2" id="2" />
+                <Label htmlFor="2">Setrika</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="0" id="0" />
+                <Label htmlFor="0">Lainnya</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="space-y-2">
             <Input
               id="name"
               value={formData.name}

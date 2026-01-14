@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { ServiceProps } from "@/types/service";
 import { dayNames, monthNames } from "@/utils/array";
 import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
+import { log } from "console";
 import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -228,9 +229,7 @@ Terimakasih banyak🙏😊`;
     return total;
   }, 0);
   const rounded = getLastThreeDigits(total);
-  const isUnder3kg = weight > 0 && weight < 3 ? true : false;
-
-  console.log("cek s", services);
+  const isUnder3kg = weight > 0 && weight < 3 && rounded > 0 ? true : false;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
