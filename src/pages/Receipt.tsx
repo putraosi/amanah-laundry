@@ -135,7 +135,7 @@ const Receipt = () => {
       const text = `Bismillah,
 Mohon maaf mengganggu waktu istirahatnya.
 
-Alhamdulillah, setrikaannya sudah selesai.
+Alhamdulillah, pesanannya sudah selesai.
 InsyaAllah, *besok pagi* di antar.
 
 Terimakasih banyak🙏😊`;
