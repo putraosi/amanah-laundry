@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import type { ServiceProps } from "@/types/service";
 import { dayNames, monthNames } from "@/utils/array";
 import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
-import { log } from "console";
 import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -26,8 +25,8 @@ const DataDefault: ServiceProps[] = [
     show: true,
   },
   { name: "Cuci Lipat", quantity: 0, price: 5000, type: 1, show: false },
-  { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: false },
-  { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: false },
+  { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: true },
+  { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: true },
   { name: "Cuci Kilat", quantity: 0, price: 13000, type: 1, show: false },
   { name: "Dryer", quantity: 0, price: 2500, type: 0, show: false },
   {
@@ -78,11 +77,12 @@ const Receipt = () => {
 
   const [services, setServices] = useState<ServiceProps[]>(DataDefault);
   const [isShowAll, setIsShowAll] = useState(false);
+  const [remainingBalance, setRemainingBalance] = useState("0");
 
   const calculateSubtotal = () => {
     return services.reduce(
       (sum, item) => sum + Number(item.quantity || 0) * Number(item.price || 0),
-      0
+      0,
     );
   };
 
@@ -94,7 +94,7 @@ const Receipt = () => {
     const newServices = [...services];
     newServices[index].quantity = Math.max(
       0,
-      Number(newServices[index].quantity || 0) + delta
+      Number(newServices[index].quantity || 0) + delta,
     );
     setServices(newServices);
   };
@@ -178,14 +178,14 @@ Terimakasih banyak🙏😊`;
     if (filtered?.length) {
       const totalQty = filtered.reduce(
         (sum, item) => sum + Number(item.quantity || 0),
-        0
+        0,
       );
 
       if (totalQty >= 10) {
         const totalPrice = filtered.reduce(
           (sum, item) =>
             sum + Number(item.quantity || 0) * Number(item.price || 0),
-          0
+          0,
         );
 
         discount = (totalPrice * SpecialDiscount) / 100;
@@ -229,7 +229,7 @@ Terimakasih banyak🙏😊`;
     return total;
   }, 0);
   const rounded = getLastThreeDigits(total);
-  const isUnder3kg = weight > 0 && weight < 3 && rounded > 0 ? true : false;
+  const isUnder3kg = weight > 0 && weight < 3 && rounded > 0 && total < 21000;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -297,6 +297,7 @@ Terimakasih banyak🙏😊`;
                             <span>x</span>
                             <Input
                               type="text"
+                              inputMode="numeric"
                               value={formatCurrency(Number(service.price || 0))}
                               onChange={(e) => {
                                 const newServices = [...services];
@@ -318,6 +319,19 @@ Terimakasih banyak🙏😊`;
                   );
                 })}
               </div>
+
+              {isShowAll && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Sisa Saldo</p>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={remainingBalance}
+                    onChange={(e) => setRemainingBalance(e?.target?.value)}
+                    className="text-center flex-1"
+                  />
+                </div>
+              )}
 
               <div
                 onClick={() => setIsShowAll((prev) => !prev)}
@@ -362,12 +376,12 @@ Terimakasih banyak🙏😊`;
                           <span>
                             {formatCurrency(
                               Number(service.quantity) *
-                                Number(service.price || 0)
+                                Number(service.price || 0),
                             )}
                           </span>
                         </div>
                       </div>
-                    ) : null
+                    ) : null,
                   )}
                 </div>
                 <div className="border-t border-dashed border-border my-2"></div>
@@ -383,7 +397,7 @@ Terimakasih banyak🙏😊`;
                     </span>
                     <span>
                       {formatCurrency(
-                        totalDiscount + (isUnder3kg ? 0 : rounded)
+                        totalDiscount + (isUnder3kg ? 0 : rounded),
                       )}
                     </span>
                   </div>
@@ -397,16 +411,47 @@ Terimakasih banyak🙏😊`;
                     <span>Total</span>
                     <span>
                       {formatCurrency(
-                        isUnder3kg ? total + 1000 - rounded : total - rounded
+                        isUnder3kg ? total + 1000 - rounded : total - rounded,
                       )}
                     </span>
                   </div>
+
+                  {Number(remainingBalance || 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Sisa Saldo</span>
+                      <span>
+                        {formatCurrency(Number(remainingBalance || 0))}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
+
+            {specialDiscount > 0 && (
+              <p className="px-1 pb-1 text-[10px] text-black/50 italic">
+                *Selamat! Anda mendapat diskon 5% karena pesanan Anda lebih dari
+                10 kg.
+              </p>
+            )}
           </Card>
         </div>
       </div>
+
+      <Button
+        onClick={onValidation}
+        size="icon"
+        className="
+    absolute
+    bottom-4
+    right-4
+    md:hidden
+    aspect-square
+    rounded-full
+  "
+      >
+        <Share2 className="w-2 h-auto" />
+      </Button>
     </div>
   );
 };
