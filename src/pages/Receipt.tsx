@@ -12,72 +12,29 @@ import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 
-const SpecialDiscount = 5; // percentage
-
-const DataDefault: ServiceProps[] = [
+const DEFAULT_SERVICES = [
   { name: "Setrika Reguler", quantity: 0, price: 5000, type: 2, show: true },
-  {
-    style: "secondary",
-    name: "Setrika Express",
-    quantity: 0,
-    price: 6000,
-    type: 2,
-    show: true,
-  },
-  { name: "Cuci Lipat", quantity: 0, price: 5000, type: 1, show: false },
+  { name: "Setrika Express", quantity: 0, price: 6000, type: 2, show: true },
+  { name: "Cuci Lipat", quantity: 0, price: 6000, type: 1, show: false },
   { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: true },
   { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: true },
   { name: "Cuci Kilat", quantity: 0, price: 13000, type: 1, show: false },
   { name: "Dryer", quantity: 0, price: 2500, type: 0, show: false },
-  {
-    style: "secondary",
-    name: "Bedcover",
-    quantity: 0,
-    price: 25000,
-    type: 0,
-    show: false,
-  },
-  {
-    style: "secondary",
-    name: "Selimut",
-    quantity: 0,
-    price: 10000,
-    type: 0,
-    show: false,
-  },
-  {
-    style: "secondary",
-    name: "Sprei",
-    quantity: 0,
-    price: 12000,
-    type: 0,
-    show: false,
-  },
-  {
-    style: "secondary",
-    name: "Karpet (p x l)",
-    quantity: 0,
-    price: 10000,
-    type: 0,
-    show: false,
-  },
-  {
-    style: "secondary",
-    name: "Plastik Gantung",
-    quantity: 0,
-    price: 3000,
-    type: 0,
-    show: false,
-  },
+  { name: "Bedcover", quantity: 0, price: 25000, type: 0, show: false },
+  { name: "Selimut", quantity: 0, price: 10000, type: 0, show: false },
+  { name: "Sprei", quantity: 0, price: 12000, type: 0, show: false },
+  { name: "Karpet (p x l)", quantity: 0, price: 10000, type: 0, show: false },
+  { name: "Plastik Gantung", quantity: 0, price: 3000, type: 0, show: false },
   { name: "Ongkir", quantity: 0, price: 2000, type: 0, show: false },
 ];
 
 const Receipt = () => {
   const receiptRef = useRef(null);
 
-  const [services, setServices] = useState<ServiceProps[]>(DataDefault);
+  const [services, setServices] = useState<ServiceProps[]>(DEFAULT_SERVICES);
   const [isShowAll, setIsShowAll] = useState(false);
   const [remainingBalance, setRemainingBalance] = useState("0");
+  const [discount, setDiscount] = useState(0);
 
   const calculateSubtotal = () => {
     return services.reduce(
@@ -86,9 +43,6 @@ const Receipt = () => {
     );
   };
 
-  const calculateTotal = () => {
-    return calculateSubtotal() - totalDiscount;
-  };
 
   const updateServiceQuantity = (index: number, delta: number) => {
     const newServices = [...services];
@@ -100,11 +54,12 @@ const Receipt = () => {
   };
 
   const onReset = () => {
-    const reset = DataDefault.map((item) => ({
+    const reset = DEFAULT_SERVICES.map((item) => ({
       ...item,
       quantity: 0,
     }));
     setServices(reset);
+    setRemainingBalance("0");
   };
 
   const onValidation = () => {
@@ -172,44 +127,27 @@ Terimakasih banyak🙏😊`;
   };
 
   const getSpecialDiscount = () => {
-    let discount: number = 0;
+    let disc: number = 0;
     const filtered = services.filter((e) => e?.type === 1 || e?.type === 2);
 
     if (filtered?.length) {
-      const totalQty = filtered.reduce(
-        (sum, item) => sum + Number(item.quantity || 0),
+      // const totalQty = filtered.reduce(
+      //   (sum, item) => sum + Number(item.quantity || 0),
+      //   0,
+      // );
+
+      // if (totalQty >= 10) {
+      const totalPrice = filtered.reduce(
+        (sum, item) =>
+          sum + Number(item.quantity || 0) * Number(item.price || 0),
         0,
       );
 
-      if (totalQty >= 10) {
-        const totalPrice = filtered.reduce(
-          (sum, item) =>
-            sum + Number(item.quantity || 0) * Number(item.price || 0),
-          0,
-        );
-
-        discount = (totalPrice * SpecialDiscount) / 100;
-      }
+      disc = (totalPrice * Number(discount || 0)) / 100;
+      // }
     }
 
-    return discount;
-  };
-
-  const copyToClipboard = async () => {
-    const text = `Bismillah,
-Mohon maaf mengganggu waktu istirahatnya.
-
-Alhamdulillah, pesanannya sudah selesai.
-InsyaAllah, *besok pagi* di antar.
-
-Terimakasih banyak🙏😊`;
-
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Text berhasil di-copy!");
-    } catch (err) {
-      console.error("Gagal copy:", err);
-    }
+    return disc;
   };
 
   const handleAddCustomer = (data: Omit<ServiceProps, "id" | "createdAt">) => {
@@ -221,15 +159,25 @@ Terimakasih banyak🙏😊`;
 
   const specialDiscount = getSpecialDiscount();
   const totalDiscount = roundUpToThousand(specialDiscount);
-  const total = calculateTotal();
-  const weight = services.reduce((total, item) => {
-    if (item.type === 1 || item.type === 2) {
-      return Number(total) + Number(item.quantity);
-    }
-    return total;
-  }, 0);
-  const rounded = getLastThreeDigits(total);
-  const isUnder3kg = weight > 0 && weight < 3 && rounded > 0 && total < 21000;
+
+  // ====== CALCULATION ======
+  const subtotal = services.reduce(
+    (sum, s) => sum + Number(s.quantity) * Number(s.price),
+    0,
+  );
+
+  const weight = services.reduce(
+    (sum, s) => (s.type === 1 || s.type === 2 ? sum + Number(s.quantity) : sum),
+    0,
+  );
+
+
+  const rounded = getLastThreeDigits(subtotal);
+  const isUnder3kg =
+    weight > 0 && weight < 3 && rounded > 0 && subtotal < 21000;
+  const total: number = isUnder3kg
+    ? subtotal + 1000 - rounded
+    : subtotal - rounded;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -321,16 +269,35 @@ Terimakasih banyak🙏😊`;
               </div>
 
               {isShowAll && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Sisa Saldo</p>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={remainingBalance}
-                    onChange={(e) => setRemainingBalance(e?.target?.value)}
-                    className="text-center flex-1"
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Diskon (%)</p>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={discount}
+                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      className="text-center flex-1"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Sisa Saldo</p>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={formatCurrency(Number(remainingBalance || 0))}
+                      onChange={(e) =>
+                        setRemainingBalance(
+                          e?.target?.value
+                            .replace(/\./g, "")
+                            .replace(REGEX_NUMBER_DECIMAL, ""),
+                        )
+                      }
+                      className="text-center flex-1"
+                    />
+                  </div>
+                </>
               )}
 
               <div
@@ -392,9 +359,7 @@ Terimakasih banyak🙏😊`;
                     <span>{formatCurrency(calculateSubtotal())}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>
-                      Diskon {specialDiscount ? `${SpecialDiscount}%` : ""}
-                    </span>
+                    <span>Diskon {specialDiscount ? `${discount}%` : ""}</span>
                     <span>
                       {formatCurrency(
                         totalDiscount + (isUnder3kg ? 0 : rounded),
@@ -409,18 +374,14 @@ Terimakasih banyak🙏😊`;
                   )}
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>
-                      {formatCurrency(
-                        isUnder3kg ? total + 1000 - rounded : total - rounded,
-                      )}
-                    </span>
+                    <span>{formatCurrency(total)}</span>
                   </div>
 
                   {Number(remainingBalance || 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Sisa Saldo</span>
                       <span>
-                        {formatCurrency(Number(remainingBalance || 0))}
+                        {formatCurrency(Number(remainingBalance || 0) - total)}
                       </span>
                     </div>
                   )}
@@ -430,8 +391,7 @@ Terimakasih banyak🙏😊`;
 
             {specialDiscount > 0 && (
               <p className="px-1 pb-1 text-[10px] text-black/50 italic">
-                *Selamat! Anda mendapat diskon 5% karena pesanan Anda lebih dari
-                10 kg.
+                *Selamat! Anda mendapat diskon {discount}%.
               </p>
             )}
           </Card>
@@ -442,7 +402,7 @@ Terimakasih banyak🙏😊`;
         onClick={onValidation}
         size="icon"
         className="
-    absolute
+    fixed
     bottom-4
     right-4
     md:hidden
