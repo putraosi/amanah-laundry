@@ -13,6 +13,8 @@ import type { ServiceProps } from "@/types/service";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
+import { formatCurrency } from "@/utils/formatter";
 
 interface AddServiceDialogProps {
   onAddService: (Service: Omit<ServiceProps, "id" | "createdAt">) => void;
@@ -102,9 +104,12 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
               id="quantity"
               type="tel"
               value={formData.quantity}
-              onChange={(e) =>
-                setFormData({ ...formData, quantity: e.target.value })
-              }
+              onChange={(e) => {
+                const newValue = e.target.value
+                  .replace(/\./g, "")
+                  .replace(REGEX_NUMBER_DECIMAL, "");
+                setFormData({ ...formData, quantity: newValue });
+              }}
               placeholder="0"
               required
             />
@@ -114,10 +119,13 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
             <Label htmlFor="price">Harga *</Label>
             <Input
               id="price"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData({ ...formData, price: e.target.value })
-              }
+              value={formatCurrency(Number(formData.price || 0))}
+              onChange={(e) => {
+                const newValue = e.target.value
+                  .replace(/\./g, "")
+                  .replace(REGEX_NUMBER_DECIMAL, "");
+                setFormData({ ...formData, price: newValue });
+              }}
               placeholder="0"
               required
             />

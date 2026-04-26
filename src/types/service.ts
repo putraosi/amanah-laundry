@@ -5,4 +5,5 @@ export interface ServiceProps {
   price: number | string;
   type: number;
   show: boolean;
+  showInput?: boolean;
 }

@@ -5,9 +5,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DISCOUNT_TYPES, type DiscountType } from "@/types/customer";
 import type { ServiceProps } from "@/types/service";
 import { dayNames, monthNames } from "@/utils/array";
+import { formatCurrency } from "@/utils/formatter";
 import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
+import { Select } from "@radix-ui/react-select";
 import * as htmlToImage from "html-to-image";
 import { Minus, Plus, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -20,11 +29,46 @@ const DEFAULT_SERVICES = [
   { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: true },
   { name: "Cuci Kilat", quantity: 0, price: 13000, type: 1, show: false },
   { name: "Dryer", quantity: 0, price: 2500, type: 0, show: false },
-  { name: "Bedcover", quantity: 0, price: 25000, type: 0, show: false },
-  { name: "Selimut", quantity: 0, price: 10000, type: 0, show: false },
-  { name: "Sprei", quantity: 0, price: 12000, type: 0, show: false },
-  { name: "Karpet (p x l)", quantity: 0, price: 10000, type: 0, show: false },
-  { name: "Plastik Gantung", quantity: 0, price: 3000, type: 0, show: false },
+  {
+    name: "Bedcover",
+    quantity: 0,
+    price: 25000,
+    type: 0,
+    show: false,
+    showInput: true,
+  },
+  {
+    name: "Selimut",
+    quantity: 0,
+    price: 10000,
+    type: 0,
+    show: false,
+    showInput: true,
+  },
+  {
+    name: "Sprei",
+    quantity: 0,
+    price: 12000,
+    type: 0,
+    show: false,
+    showInput: true,
+  },
+  {
+    name: "Karpet (p x l)",
+    quantity: 0,
+    price: 10000,
+    type: 0,
+    show: false,
+    showInput: true,
+  },
+  {
+    name: "Plastik Gantung",
+    quantity: 0,
+    price: 3000,
+    type: 0,
+    show: false,
+    showInput: true,
+  },
   { name: "Ongkir", quantity: 0, price: 2000, type: 0, show: false },
 ];
 
@@ -34,7 +78,8 @@ const Receipt = () => {
   const [services, setServices] = useState<ServiceProps[]>(DEFAULT_SERVICES);
   const [isShowAll, setIsShowAll] = useState(false);
   const [remainingBalance, setRemainingBalance] = useState("0");
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState("0");
+  const [discountType, setDiscountType] = useState<DiscountType>("flat");
 
   const calculateSubtotal = () => {
     return services.reduce(
@@ -42,7 +87,6 @@ const Receipt = () => {
       0,
     );
   };
-
 
   const updateServiceQuantity = (index: number, delta: number) => {
     const newServices = [...services];
@@ -128,22 +172,24 @@ Terimakasih banyak🙏😊`;
 
   const getSpecialDiscount = () => {
     let disc: number = 0;
-    const filtered = services.filter((e) => e?.type === 1 || e?.type === 2);
 
-    if (filtered?.length) {
+    if (services?.length) {
       // const totalQty = filtered.reduce(
       //   (sum, item) => sum + Number(item.quantity || 0),
       //   0,
       // );
 
       // if (totalQty >= 10) {
-      const totalPrice = filtered.reduce(
+      const totalPrice = services.reduce(
         (sum, item) =>
           sum + Number(item.quantity || 0) * Number(item.price || 0),
         0,
       );
 
-      disc = (totalPrice * Number(discount || 0)) / 100;
+      disc =
+        discountType === "percentage"
+          ? (totalPrice * Number(discount || 0)) / 100
+          : Number(discount || 0);
       // }
     }
 
@@ -170,7 +216,6 @@ Terimakasih banyak🙏😊`;
     (sum, s) => (s.type === 1 || s.type === 2 ? sum + Number(s.quantity) : sum),
     0,
   );
-
 
   const rounded = getLastThreeDigits(subtotal);
   const isUnder3kg =
@@ -240,8 +285,8 @@ Terimakasih banyak🙏😊`;
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
-                        {service?.style === "secondary" ? (
-                          <div className="w-1/4 flex items-center gap-1 text-sm">
+                        {service?.showInput ? (
+                          <div className="w-1/3 flex items-center gap-1 text-sm">
                             <span>x</span>
                             <Input
                               type="text"
@@ -258,7 +303,7 @@ Terimakasih banyak🙏😊`;
                             />
                           </div>
                         ) : (
-                          <span className="w-1/4 text-sm whitespace-nowrap">
+                          <span className="w-1/3 text-sm whitespace-nowrap">
                             x Rp {formatCurrency(Number(service.price || 0))}
                           </span>
                         )}
@@ -271,14 +316,43 @@ Terimakasih banyak🙏😊`;
               {isShowAll && (
                 <>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Diskon (%)</p>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      value={discount}
-                      onChange={(e) => setDiscount(Number(e.target.value))}
-                      className="text-center flex-1"
-                    />
+                    <p className="text-sm font-medium">Diskon</p>
+                    <div className="flex gap-4">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        value={formatCurrency(Number(discount || 0))}
+                        onChange={(e) => {
+                          const newValue = e.target.value
+                            .replace(/\./g, "")
+                            .replace(REGEX_NUMBER_DECIMAL, "");
+                          setDiscount(newValue);
+                        }}
+                        className="text-center flex-1"
+                      />
+
+                      <div className="w-1/3">
+                        <Select
+                          value={discountType}
+                          onValueChange={(value) =>
+                            setDiscountType(value as DiscountType)
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(DISCOUNT_TYPES).map(
+                              ([value, label]) => (
+                                <SelectItem key={value} value={value}>
+                                  {label}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -359,13 +433,19 @@ Terimakasih banyak🙏😊`;
                     <span>{formatCurrency(calculateSubtotal())}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Diskon {specialDiscount ? `${discount}%` : ""}</span>
+                    <span>
+                      Diskon{" "}
+                      {specialDiscount && discountType === "percentage"
+                        ? `${Number(discount)}%`
+                        : ""}
+                    </span>
                     <span>
                       {formatCurrency(
                         totalDiscount + (isUnder3kg ? 0 : rounded),
                       )}
                     </span>
                   </div>
+
                   {isUnder3kg && (
                     <div className="flex justify-between">
                       <span>{"Pembulatan <3kg"}</span>
@@ -374,7 +454,7 @@ Terimakasih banyak🙏😊`;
                   )}
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>{formatCurrency(total)}</span>
+                    <span>{formatCurrency(total - totalDiscount)}</span>
                   </div>
 
                   {Number(remainingBalance || 0) > 0 && (
@@ -403,7 +483,7 @@ Terimakasih banyak🙏😊`;
         size="icon"
         className="
     fixed
-    bottom-4
+    top-4
     right-4
     md:hidden
     aspect-square
@@ -439,6 +519,3 @@ const getCurrentDate = () => {
   return `${dayName}, ${day} ${month} ${year}`;
 };
 
-const formatCurrency = (amount: number) => {
-  return amount.toLocaleString("id-ID");
-};

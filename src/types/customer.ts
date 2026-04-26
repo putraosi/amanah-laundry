@@ -5,6 +5,10 @@ export type LaundryStatus =
   | 'ready' 
   | 'selesai';
 
+  export type DiscountType = 
+  | 'percentage' 
+  | 'flat' 
+
 export interface Customer {
   id: string;
   name: string;
@@ -29,4 +33,10 @@ export const STATUS_COLORS: Record<LaundryStatus, string> = {
   setrika: 'status-ironing',
   ready: 'status-ready',
   selesai: 'status-completed',
+};
+
+
+export const DISCOUNT_TYPES: Record<DiscountType, string> = {
+  percentage: 'Persen',
+  flat: 'Nominal',
 };
