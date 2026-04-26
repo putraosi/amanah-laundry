@@ -104,6 +104,9 @@ const Receipt = () => {
     }));
     setServices(reset);
     setRemainingBalance("0");
+    setDiscount("0")
+    setDiscountType("flat")
+    setIsShowAll(false)
   };
 
   const onValidation = () => {
