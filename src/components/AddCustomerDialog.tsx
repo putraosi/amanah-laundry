@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -6,27 +6,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { ServiceProps } from "@/types/service";
-import { useState } from "react";
-import { toast } from "sonner";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
-import { formatCurrency } from "@/utils/formatter";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import type { ServiceProps } from '@/types/service';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { REGEX_NUMBER_DECIMAL } from '@/utils/regex';
+import { formatCurrency } from '@/utils/formatter';
 
 interface AddServiceDialogProps {
-  onAddService: (Service: Omit<ServiceProps, "id" | "createdAt">) => void;
+  onAddService: (Service: Omit<ServiceProps, 'id' | 'createdAt'>) => void;
 }
 
 export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<ServiceProps>({
-    style: "secondary",
-    name: "",
-    quantity: "",
-    price: "",
+    style: 'secondary',
+    name: '',
+    quantity: '',
+    price: '',
     type: 0,
     show: true,
   });
@@ -35,20 +35,20 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
     e.preventDefault();
 
     if (!formData.name || !formData.quantity || !formData.price) {
-      toast.error("Mohon isi semua field yang wajib");
+      toast.error('Mohon isi semua field yang wajib');
       return;
     }
 
     onAddService(formData);
     setFormData({
-      name: "",
-      quantity: "",
-      price: "",
+      name: '',
+      quantity: '',
+      price: '',
       type: 2,
       show: true,
     });
     setOpen(false);
-    toast.success("Service berhasil ditambahkan!");
+    toast.success('Service berhasil ditambahkan!');
   };
 
   return (
@@ -63,36 +63,12 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Jenis</Label>
+            <Label htmlFor="name">Nama</Label>
 
-            <RadioGroup
-              defaultValue={String(formData?.type)}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: Number(value) })
-              }
-              className="flex flex-row gap-6"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="1" id="1" />
-                <Label htmlFor="1">Cuci</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="2" id="2" />
-                <Label htmlFor="2">Setrika</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="0" id="0" />
-                <Label htmlFor="0">Lainnya</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          <div className="space-y-2">
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Jaket"
               required
             />
@@ -101,13 +77,11 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
           <div className="space-y-2">
             <Label htmlFor="quantity">Jumlah *</Label>
             <Input
-              id="quantity"
-              type="tel"
+              type="text"
+              inputMode="numeric"
               value={formData.quantity}
               onChange={(e) => {
-                const newValue = e.target.value
-                  .replace(/\./g, "")
-                  .replace(REGEX_NUMBER_DECIMAL, "");
+                const newValue = e.target.value.replace(REGEX_NUMBER_DECIMAL, '');
                 setFormData({ ...formData, quantity: newValue });
               }}
               placeholder="0"
@@ -122,8 +96,8 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
               value={formatCurrency(Number(formData.price || 0))}
               onChange={(e) => {
                 const newValue = e.target.value
-                  .replace(/\./g, "")
-                  .replace(REGEX_NUMBER_DECIMAL, "");
+                  .replace(/\./g, '')
+                  .replace(REGEX_NUMBER_DECIMAL, '');
                 setFormData({ ...formData, price: newValue });
               }}
               placeholder="0"
@@ -140,10 +114,7 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
             >
               Batal
             </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-primary hover:bg-primary/90"
-            >
+            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
               Tambah Service
             </Button>
           </div>

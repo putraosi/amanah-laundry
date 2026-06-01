@@ -1,13 +1,8 @@
-export type LaundryStatus = 
-  | 'antrian' 
-  | 'cuci' 
-  | 'setrika' 
-  | 'ready' 
-  | 'selesai';
+export type LaundryStatus = 'antrian' | 'cuci' | 'setrika' | 'ready' | 'selesai';
 
-  export type DiscountType = 
-  | 'percentage' 
-  | 'flat' 
+export type DiscountType = 'percentage' | 'flat';
+
+export type InterChoiceType = 'tomorrow' | 'afternoon' | 'evening' | 'night';
 
 export interface Customer {
   id: string;
@@ -35,8 +30,14 @@ export const STATUS_COLORS: Record<LaundryStatus, string> = {
   selesai: 'status-completed',
 };
 
-
 export const DISCOUNT_TYPES: Record<DiscountType, string> = {
   percentage: 'Persen',
   flat: 'Nominal',
+};
+
+export const INTER_CHOICE_TYPES: Record<InterChoiceType, string> = {
+  tomorrow: 'Besok Pagi',
+  afternoon: 'Siang Siang',
+  evening: 'Nanti Sore',
+  night: 'Nanti Malam',
 };

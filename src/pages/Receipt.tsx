@@ -1,36 +1,36 @@
-import { ImgLogo2 } from "@/assets";
-import { AddServiceDialog } from "@/components/AddCustomerDialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ImgLogo2 } from '@/assets';
+import { AddServiceDialog } from '@/components/AddCustomerDialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DISCOUNT_TYPES, type DiscountType } from "@/types/customer";
-import type { ServiceProps } from "@/types/service";
-import { dayNames, monthNames } from "@/utils/array";
-import { formatCurrency } from "@/utils/formatter";
-import { REGEX_NUMBER_DECIMAL } from "@/utils/regex";
-import { Select } from "@radix-ui/react-select";
-import * as htmlToImage from "html-to-image";
-import { Minus, Plus, Share2 } from "lucide-react";
-import { useRef, useState } from "react";
+  DISCOUNT_TYPES,
+  INTER_CHOICE_TYPES,
+  type DiscountType,
+  type InterChoiceType,
+} from '@/types/customer';
+import type { ServiceProps } from '@/types/service';
+import { dayNames, monthNames } from '@/utils/array';
+import { formatCurrency } from '@/utils/formatter';
+import { REGEX_NUMBER_DECIMAL } from '@/utils/regex';
+import { Select } from '@radix-ui/react-select';
+import * as htmlToImage from 'html-to-image';
+import { Minus, Plus, Share2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 const DEFAULT_SERVICES = [
-  { name: "Setrika Reguler", quantity: 0, price: 5000, type: 2, show: true },
-  { name: "Setrika Express", quantity: 0, price: 6000, type: 2, show: true },
-  { name: "Cuci Lipat", quantity: 0, price: 6000, type: 1, show: false },
-  { name: "Cuci Reguler", quantity: 0, price: 7000, type: 1, show: true },
-  { name: "Cuci Express", quantity: 0, price: 9000, type: 1, show: true },
-  { name: "Cuci Kilat", quantity: 0, price: 13000, type: 1, show: false },
-  { name: "Dryer", quantity: 0, price: 2500, type: 0, show: false },
+  { name: 'Setrika Reguler', quantity: 0, price: 5000, type: 2, show: true },
+  { name: 'Setrika Express', quantity: 0, price: 6000, type: 2, show: true },
+  { name: 'Cuci Lipat', quantity: 0, price: 6000, type: 1, show: false },
+  { name: 'Cuci Reguler', quantity: 0, price: 7000, type: 1, show: true },
+  { name: 'Cuci Express', quantity: 0, price: 9000, type: 1, show: true },
+  { name: 'Cuci Kilat', quantity: 0, price: 13000, type: 1, show: false },
+  { name: 'Dryer', quantity: 0, price: 2500, type: 0, show: false },
   {
-    name: "Bedcover",
+    name: 'Bedcover',
     quantity: 0,
     price: 25000,
     type: 0,
@@ -38,7 +38,7 @@ const DEFAULT_SERVICES = [
     showInput: true,
   },
   {
-    name: "Selimut",
+    name: 'Selimut',
     quantity: 0,
     price: 10000,
     type: 0,
@@ -46,7 +46,7 @@ const DEFAULT_SERVICES = [
     showInput: true,
   },
   {
-    name: "Sprei",
+    name: 'Sprei',
     quantity: 0,
     price: 12000,
     type: 0,
@@ -54,7 +54,7 @@ const DEFAULT_SERVICES = [
     showInput: true,
   },
   {
-    name: "Karpet (p x l)",
+    name: 'Karpet (p x l)',
     quantity: 0,
     price: 10000,
     type: 0,
@@ -62,14 +62,14 @@ const DEFAULT_SERVICES = [
     showInput: true,
   },
   {
-    name: "Plastik Gantung",
+    name: 'Plastik Gantung',
     quantity: 0,
-    price: 3000,
+    price: 4500,
     type: 0,
     show: false,
     showInput: true,
   },
-  { name: "Ongkir", quantity: 0, price: 2000, type: 0, show: false },
+  { name: 'Ongkir', quantity: 0, price: 2000, type: 0, show: false },
 ];
 
 const Receipt = () => {
@@ -77,23 +77,21 @@ const Receipt = () => {
 
   const [services, setServices] = useState<ServiceProps[]>(DEFAULT_SERVICES);
   const [isShowAll, setIsShowAll] = useState(false);
-  const [remainingBalance, setRemainingBalance] = useState("0");
-  const [discount, setDiscount] = useState("0");
-  const [discountType, setDiscountType] = useState<DiscountType>("flat");
+  const [remainingBalance, setRemainingBalance] = useState('0');
+  const [discount, setDiscount] = useState('0');
+  const [discountType, setDiscountType] = useState<DiscountType>('flat');
+  const [interChoice, setInterChoice] = useState<InterChoiceType>('tomorrow');
 
   const calculateSubtotal = () => {
     return services.reduce(
       (sum, item) => sum + Number(item.quantity || 0) * Number(item.price || 0),
-      0,
+      0
     );
   };
 
   const updateServiceQuantity = (index: number, delta: number) => {
     const newServices = [...services];
-    newServices[index].quantity = Math.max(
-      0,
-      Number(newServices[index].quantity || 0) + delta,
-    );
+    newServices[index].quantity = Math.max(0, Number(newServices[index].quantity || 0) + delta);
     setServices(newServices);
   };
 
@@ -103,17 +101,17 @@ const Receipt = () => {
       quantity: 0,
     }));
     setServices(reset);
-    setRemainingBalance("0");
-    setDiscount("0")
-    setDiscountType("flat")
-    setIsShowAll(false)
+    setRemainingBalance('0');
+    setDiscount('0');
+    setDiscountType('flat');
+    setIsShowAll(false);
   };
 
   const onValidation = () => {
     const hasValue = services.some((item) => Number(item.quantity || 0) > 0);
 
     if (!hasValue) {
-      alert("Must be input one");
+      alert('Must be input one');
       return;
     }
 
@@ -123,7 +121,7 @@ const Receipt = () => {
   const share = async () => {
     const node = receiptRef.current;
 
-    if (!node) return alert("Receipt tidak ditemukan!");
+    if (!node) return alert('Receipt tidak ditemukan!');
 
     try {
       // convert to blob
@@ -132,13 +130,12 @@ const Receipt = () => {
       const blob = await res.blob();
 
       const file = new File([blob], `${generateReceiptId()}.png`, {
-        type: "image/png",
+        type: 'image/png',
       });
-      const text = `Bismillah,
-Mohon maaf mengganggu waktu istirahatnya.
+      const text = `Bismillahirrahmanirrahim,
 
 Alhamdulillah, pesanannya sudah selesai.
-InsyaAllah, *besok pagi* di antar.
+InsyaAllah, *${INTER_CHOICE_TYPES[interChoice]}* di antar.
 
 Terimakasih banyak🙏😊`;
 
@@ -148,28 +145,28 @@ Terimakasih banyak🙏😊`;
           await navigator.share({
             files: [file],
             text: text,
-            title: "Kirim Struk",
+            title: 'Kirim Struk',
           });
           return;
         } catch (err) {
-          console.warn("Share failed, fallback to WA Web", err);
+          console.warn('Share failed, fallback to WA Web', err);
         }
       }
 
       // ---- WHATSAPP WEB fallback ----
-      const msg = "Halo, ini struk pesanan Anda.";
-      const phone = ""; // optional: nomor tujuan
+      const msg = 'Halo, ini struk pesanan Anda.';
+      const phone = ''; // optional: nomor tujuan
 
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
 
       // download image (karena tidak bisa attach di web)
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = dataUrl;
       a.download = `${generateReceiptId()}.png`;
       a.click();
     } catch (error) {
       console.error(error);
-      alert("Gagal membuat gambar!");
+      alert('Gagal membuat gambar!');
     }
   };
 
@@ -184,13 +181,12 @@ Terimakasih banyak🙏😊`;
 
       // if (totalQty >= 10) {
       const totalPrice = services.reduce(
-        (sum, item) =>
-          sum + Number(item.quantity || 0) * Number(item.price || 0),
-        0,
+        (sum, item) => sum + Number(item.quantity || 0) * Number(item.price || 0),
+        0
       );
 
       disc =
-        discountType === "percentage"
+        discountType === 'percentage'
           ? (totalPrice * Number(discount || 0)) / 100
           : Number(discount || 0);
       // }
@@ -199,7 +195,7 @@ Terimakasih banyak🙏😊`;
     return disc;
   };
 
-  const handleAddCustomer = (data: Omit<ServiceProps, "id" | "createdAt">) => {
+  const handleAddCustomer = (data: Omit<ServiceProps, 'id' | 'createdAt'>) => {
     const newService: ServiceProps = {
       ...data,
     };
@@ -210,33 +206,23 @@ Terimakasih banyak🙏😊`;
   const totalDiscount = roundUpToThousand(specialDiscount);
 
   // ====== CALCULATION ======
-  const subtotal = services.reduce(
-    (sum, s) => sum + Number(s.quantity) * Number(s.price),
-    0,
-  );
+  const subtotal = services.reduce((sum, s) => sum + Number(s.quantity) * Number(s.price), 0);
 
   const weight = services.reduce(
     (sum, s) => (s.type === 1 || s.type === 2 ? sum + Number(s.quantity) : sum),
-    0,
+    0
   );
 
   const rounded = getLastThreeDigits(subtotal);
-  const isUnder3kg =
-    weight > 0 && weight < 3 && rounded > 0 && subtotal < 21000;
-  const total: number = isUnder3kg
-    ? subtotal + 1000 - rounded
-    : subtotal - rounded;
+  const isUnder3kg = weight > 0 && weight < 3 && rounded > 0 && subtotal < 21000;
+  const total: number = isUnder3kg ? subtotal + 1000 - rounded : subtotal - rounded;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Buat Kwitansi
-          </h1>
-          <p className="text-muted-foreground">
-            Buat dan bagikan kwitansi laundry via WhatsApp
-          </p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Buat Kwitansi</h1>
+          <p className="text-muted-foreground">Buat dan bagikan kwitansi laundry via WhatsApp</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -274,8 +260,10 @@ Terimakasih banyak🙏😊`;
                           value={service.quantity}
                           onChange={(e) => {
                             const newServices = [...services];
-                            newServices[index].quantity =
-                              e.target.value.replace(REGEX_NUMBER_DECIMAL, "");
+                            newServices[index].quantity = e.target.value.replace(
+                              REGEX_NUMBER_DECIMAL,
+                              ''
+                            );
                             setServices(newServices);
                           }}
                           className="text-center flex-1"
@@ -298,8 +286,8 @@ Terimakasih banyak🙏😊`;
                               onChange={(e) => {
                                 const newServices = [...services];
                                 newServices[index].price = e.target.value
-                                  .replace(/\./g, "")
-                                  .replace(REGEX_NUMBER_DECIMAL, "");
+                                  .replace(/\./g, '')
+                                  .replace(REGEX_NUMBER_DECIMAL, '');
                                 setServices(newServices);
                               }}
                               className="flex-1"
@@ -327,8 +315,8 @@ Terimakasih banyak🙏😊`;
                         value={formatCurrency(Number(discount || 0))}
                         onChange={(e) => {
                           const newValue = e.target.value
-                            .replace(/\./g, "")
-                            .replace(REGEX_NUMBER_DECIMAL, "");
+                            .replace(/\./g, '')
+                            .replace(REGEX_NUMBER_DECIMAL, '');
                           setDiscount(newValue);
                         }}
                         className="text-center flex-1"
@@ -337,21 +325,17 @@ Terimakasih banyak🙏😊`;
                       <div className="w-1/3">
                         <Select
                           value={discountType}
-                          onValueChange={(value) =>
-                            setDiscountType(value as DiscountType)
-                          }
+                          onValueChange={(value) => setDiscountType(value as DiscountType)}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.entries(DISCOUNT_TYPES).map(
-                              ([value, label]) => (
-                                <SelectItem key={value} value={value}>
-                                  {label}
-                                </SelectItem>
-                              ),
-                            )}
+                            {Object.entries(DISCOUNT_TYPES).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -359,20 +343,38 @@ Terimakasih banyak🙏😊`;
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Sisa Saldo</p>
+                    <p className="text-sm font-medium">Saldo</p>
                     <Input
                       type="text"
                       inputMode="numeric"
                       value={formatCurrency(Number(remainingBalance || 0))}
                       onChange={(e) =>
                         setRemainingBalance(
-                          e?.target?.value
-                            .replace(/\./g, "")
-                            .replace(REGEX_NUMBER_DECIMAL, ""),
+                          e?.target?.value.replace(/\./g, '').replace(REGEX_NUMBER_DECIMAL, '')
                         )
                       }
                       className="text-center flex-1"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Pilihan Antar</p>
+
+                    <Select
+                      value={interChoice}
+                      onValueChange={(value) => setInterChoice(value as InterChoiceType)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(INTER_CHOICE_TYPES).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </>
               )}
@@ -414,18 +416,15 @@ Terimakasih banyak🙏😊`;
                         <div className="font-bold">{service.name}</div>
                         <div className="flex justify-between">
                           <span>
-                            {Number(service.quantity).toFixed(1)} x{" "}
+                            {Number(service.quantity).toFixed(1)} x{' '}
                             {formatCurrency(Number(service.price || 0))}
                           </span>
                           <span>
-                            {formatCurrency(
-                              Number(service.quantity) *
-                                Number(service.price || 0),
-                            )}
+                            {formatCurrency(Number(service.quantity) * Number(service.price || 0))}
                           </span>
                         </div>
                       </div>
-                    ) : null,
+                    ) : null
                   )}
                 </div>
                 <div className="border-t border-dashed border-border my-2"></div>
@@ -437,21 +436,17 @@ Terimakasih banyak🙏😊`;
                   </div>
                   <div className="flex justify-between">
                     <span>
-                      Diskon{" "}
-                      {specialDiscount && discountType === "percentage"
+                      Diskon{' '}
+                      {specialDiscount && discountType === 'percentage'
                         ? `${Number(discount)}%`
-                        : ""}
+                        : ''}
                     </span>
-                    <span>
-                      {formatCurrency(
-                        totalDiscount + (isUnder3kg ? 0 : rounded),
-                      )}
-                    </span>
+                    <span>{formatCurrency(totalDiscount + (isUnder3kg ? 0 : rounded))}</span>
                   </div>
 
                   {isUnder3kg && (
                     <div className="flex justify-between">
-                      <span>{"Pembulatan <3kg"}</span>
+                      <span>{'Pembulatan <3kg'}</span>
                       <span>{formatCurrency(1000 - rounded)}</span>
                     </div>
                   )}
@@ -463,9 +458,7 @@ Terimakasih banyak🙏😊`;
                   {Number(remainingBalance || 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Sisa Saldo</span>
-                      <span>
-                        {formatCurrency(Number(remainingBalance || 0) - total)}
-                      </span>
+                      <span>{formatCurrency(Number(remainingBalance || 0) - total)}</span>
                     </div>
                   )}
                 </div>
@@ -474,7 +467,7 @@ Terimakasih banyak🙏😊`;
 
             {specialDiscount > 0 && (
               <p className="px-1 pb-1 text-[10px] text-black/50 italic">
-                *Selamat! Anda mendapat diskon {discount}%.
+                *Selamat! Anda mendapat diskon.
               </p>
             )}
           </Card>
@@ -515,10 +508,9 @@ const getCurrentDate = () => {
   const now = new Date();
 
   const dayName = dayNames[now.getDay()];
-  const day = String(now.getDate()).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, '0');
   const month = monthNames[now.getMonth()];
   const year = now.getFullYear();
 
   return `${dayName}, ${day} ${month} ${year}`;
 };
-
