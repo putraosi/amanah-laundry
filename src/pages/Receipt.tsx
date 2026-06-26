@@ -22,10 +22,30 @@ import { Minus, Plus, Share2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 const DEFAULT_SERVICES = [
-  { name: 'Setrika Reguler', quantity: 0, price: 5000, type: 2, show: true },
-  { name: 'Setrika Express', quantity: 0, price: 6000, type: 2, show: true },
+  {
+    name: 'Setrika Reguler',
+    quantity: 0,
+    price: 5000,
+    type: 2,
+    show: true,
+  },
+  {
+    name: 'Setrika Express',
+    quantity: 0,
+    price: 6000,
+    type: 2,
+    show: true,
+    options: ['6000', '7000'],
+  },
   { name: 'Cuci Lipat', quantity: 0, price: 6000, type: 1, show: false },
-  { name: 'Cuci Reguler', quantity: 0, price: 7000, type: 1, show: true },
+  {
+    name: 'Cuci Reguler',
+    quantity: 0,
+    price: 7000,
+    type: 1,
+    show: true,
+    options: ['7000', '8000'],
+  },
   { name: 'Cuci Express', quantity: 0, price: 9000, type: 1, show: true },
   { name: 'Cuci Kilat', quantity: 0, price: 13000, type: 1, show: false },
   { name: 'Dryer', quantity: 0, price: 2500, type: 0, show: false },
@@ -35,7 +55,7 @@ const DEFAULT_SERVICES = [
     price: 25000,
     type: 0,
     show: false,
-    showInput: true,
+    options: ['15000', '18000', '20000', '25000', '30000'],
   },
   {
     name: 'Selimut',
@@ -43,7 +63,7 @@ const DEFAULT_SERVICES = [
     price: 10000,
     type: 0,
     show: false,
-    showInput: true,
+    options: ['8000', '10000', '12000', '15000', '18000'],
   },
   {
     name: 'Sprei',
@@ -59,7 +79,7 @@ const DEFAULT_SERVICES = [
     price: 10000,
     type: 0,
     show: false,
-    showInput: true,
+    options: ['10000', '12000', '15000'],
   },
   {
     name: 'Plastik Gantung',
@@ -67,7 +87,7 @@ const DEFAULT_SERVICES = [
     price: 4500,
     type: 0,
     show: false,
-    showInput: true,
+    options: ['3000', '4500', '5000'],
   },
   { name: 'Ongkir', quantity: 0, price: 2000, type: 0, show: false },
 ];
@@ -276,7 +296,9 @@ Terimakasih banyak🙏😊`;
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
+
                         {service?.showInput ? (
+                          // INPUT TYPE
                           <div className="w-1/3 flex items-center gap-1 text-sm">
                             <span>x</span>
                             <Input
@@ -293,7 +315,33 @@ Terimakasih banyak🙏😊`;
                               className="flex-1"
                             />
                           </div>
+                        ) : service?.options?.length ? (
+                          // OPTION TYPE
+                          <div className="w-1/3">
+                            <Select
+                              value={String(service.price)}
+                              onValueChange={(value) => {
+                                const newServices = [...services];
+                                newServices[index].price = value
+                                  .replace(/\./g, '')
+                                  .replace(REGEX_NUMBER_DECIMAL, '');
+                                setServices(newServices);
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {service?.options.map((e, i) => (
+                                  <SelectItem key={i} value={e}>
+                                    {formatCurrency(Number(e || 0))}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         ) : (
+                          // LABEL TYPE
                           <span className="w-1/3 text-sm whitespace-nowrap">
                             x Rp {formatCurrency(Number(service.price || 0))}
                           </span>
