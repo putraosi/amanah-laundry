@@ -92,7 +92,8 @@ export const AddServiceDialog = ({ onAddService }: AddServiceDialogProps) => {
           <div className="space-y-2">
             <Label htmlFor="price">Harga *</Label>
             <Input
-              id="price"
+              type="text"
+              inputMode="numeric"
               value={formatCurrency(Number(formData.price || 0))}
               onChange={(e) => {
                 const newValue = e.target.value
